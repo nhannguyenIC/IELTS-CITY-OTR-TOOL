@@ -1,0 +1,8 @@
+{
+  "name": "otr-tool-bcd",
+  "version": "1.0.0",
+  "description": "IELTS City OTR Tool BCD — Vercel serverless function",
+  "dependencies": {
+    "docx": "^8.5.0"
+  }
+}
