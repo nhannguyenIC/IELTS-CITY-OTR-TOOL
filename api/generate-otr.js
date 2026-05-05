@@ -241,17 +241,17 @@ function buildDocument(data) {
     })]})]
   });
 
-  const mW=Math.floor(CW/4);
+  // Meta row: 3 fields (Scheme removed — no clear purpose)
+  const mW1=Math.floor(CW/3), mW2=Math.floor(CW/3), mW3=CW-mW1-mW2;
   const p1Meta = new Table({
     width:{size:CW,type:WidthType.DXA},
-    columnWidths:[mW,mW,mW,CW-mW*3],
+    columnWidths:[mW1,mW2,mW3],
     rows:[new TableRow({children:[
       ['Test Date',candidate.testDate||'—'],
-      ['Class ID',candidate.classId||'—'],
-      ['Scheme','IELTS City Course Test'],
+      ['Class ID', candidate.classId||'—'],
       ['First Language','Vietnamese']
     ].map(([lbl,val],i)=>new TableCell({
-      width:{size:i<3?mW:CW-mW*3,type:WidthType.DXA},
+      width:{size:[mW1,mW2,mW3][i],type:WidthType.DXA},
       shading:{fill:LIGHT,type:ShadingType.CLEAR},
       borders:thinB,margins:cm,
       children:[
