@@ -533,7 +533,7 @@ module.exports = async (req, res) => {
                      .replace(/\s+/g,'_');
 
     res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition','attachment; filename="'+name+'"');
+    res.setHeader('Content-Disposition', "attachment; filename*=UTF-8''" + encodeURIComponent(name));
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
 
