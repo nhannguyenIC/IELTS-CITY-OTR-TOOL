@@ -45,8 +45,6 @@ function generateOTR(sheetUrl) {
     const classMatch = fileName.match(/([A-Z]{1,3}\d{3,4})/);
     const classId    = classMatch ? classMatch[1] : 'N/A';
 
-    const photo = fetchPhoto(photoRawUrl);
-
     const speaking = {
       criteria: [
         { name: str(sSheet,'B6'),  score: str(sSheet,'E6'),
@@ -97,7 +95,6 @@ function generateOTR(sheetUrl) {
         w1Score, w2Score,
         listeningCorrect, readingCorrect
       },
-      photo,
       speaking, w1, w2, listeningWrong, readingWrong
     };
 
@@ -148,57 +145,6 @@ function extractWrong(sheet) {
     .map((r,i) => ({ q: i+1, status: r[3] }))
     .filter(x => x.status === false || String(x.status).toLowerCase() === 'false')
     .map(x => x.q);
-}
-
-function fetchPhoto(rawUrl) {
-  if (!rawUrl || !rawUrl.trim()) return null;
-  const url = rawUrl.trim();
-
-  const driveMatch = url.match(/(?:\/file\/d\/|[?&]id=)([a-zA-Z0-9_-]{10,})/);
-  if (driveMatch) {
-    const fileId = driveMatch[1];
-
-    try {
-      const blob = DriveApp.getFileById(fileId).getBlob();
-      const ct   = blob.getContentType().toLowerCase();
-      const type = ct.includes('png') ? 'png' : 'jpg';
-      return { b64: Utilities.base64Encode(blob.getBytes()), type };
-    } catch(e) {}
-
-    try {
-      const dlUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
-      const resp  = UrlFetchApp.fetch(dlUrl, {
-        muteHttpExceptions: true,
-        followRedirects: true,
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      });
-      if (resp.getResponseCode() === 200) {
-        const ct = (resp.getHeaders()['Content-Type'] || '').toLowerCase();
-        if (ct.startsWith('image/')) {
-          return { b64: Utilities.base64Encode(resp.getContent()), type: ct.includes('png') ? 'png' : 'jpg' };
-        }
-        const resp2 = UrlFetchApp.fetch(dlUrl + '&confirm=t', { muteHttpExceptions: true, followRedirects: true });
-        if (resp2.getResponseCode() === 200) {
-          const ct2 = (resp2.getHeaders()['Content-Type'] || '').toLowerCase();
-          if (ct2.startsWith('image/')) {
-            return { b64: Utilities.base64Encode(resp2.getContent()), type: ct2.includes('png') ? 'png' : 'jpg' };
-          }
-        }
-      }
-    } catch(e) {}
-
-    return null;
-  }
-
-  try {
-    const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-    if (resp.getResponseCode() !== 200) return null;
-    const ct = (resp.getHeaders()['Content-Type'] || '').toLowerCase();
-    if (!ct.startsWith('image/')) return null;
-    return { b64: Utilities.base64Encode(resp.getContent()), type: ct.includes('png') ? 'png' : 'jpg' };
-  } catch(e) {
-    return null;
-  }
 }
 
 function formatDate(raw) {
