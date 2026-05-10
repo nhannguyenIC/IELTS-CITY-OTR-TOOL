@@ -92,7 +92,7 @@ function sectionBar(title, badge) {
       width:{size:tw,type:WidthType.DXA},
       shading:{fill:NAVY,type:ShadingType.CLEAR},
       borders:noB, margins:cmL,
-      children:[p([t(title.toUpperCase(),{bold:true,color:WHITE,size:24})])]
+      children:[p([t(title.toUpperCase(),{bold:true,color:WHITE,size:30})])]
     })
   ];
   if (badge) cells.push(new TableCell({
@@ -128,12 +128,16 @@ function criteriaHeader(name, score) {
     children:[new TableCell({
       columnSpan:4,
       width:{size:CW,type:WidthType.DXA},
-      shading:{fill:NAVY,type:ShadingType.CLEAR},
-      borders:{...noB,bottom:thin(BRDR)},
-      margins:{top:100,bottom:100,left:160,right:160},
+      shading:{fill:'EAF0F8',type:ShadingType.CLEAR},
+      borders:{
+        top:thin(NAVY), bottom:thin(NAVY),
+        left:{style:BorderStyle.SINGLE,size:20,color:NAVY},
+        right:noB.right
+      },
+      margins:{top:120,bottom:120,left:200,right:160},
       children:[p([
-        t(name.toUpperCase(),{bold:true,color:WHITE,size:20}),
-        t('    '+String(score),{bold:true,color:GOLD,size:22})
+        t(name.toUpperCase(),{bold:true,color:NAVY,size:22}),
+        t('   '+String(score),{bold:true,color:NAVY2,size:26})
       ])]
     })]
   });
@@ -145,6 +149,7 @@ function subRow(criterion, score, descriptor, notes) {
       new TableCell({
         width:{size:FC1,type:WidthType.DXA},
         borders:thinB, margins:cm,
+        verticalAlign:VerticalAlign.CENTER,
         children:[p([t(criterion,{bold:true,color:NAVY,size:18})])]
       }),
       new TableCell({
@@ -157,11 +162,13 @@ function subRow(criterion, score, descriptor, notes) {
       new TableCell({
         width:{size:FC3,type:WidthType.DXA},
         borders:thinB, margins:cm,
+        verticalAlign:VerticalAlign.CENTER,
         children:[p([t(descriptor||'',{size:18,color:TEXT})])]
       }),
       new TableCell({
         width:{size:FC4,type:WidthType.DXA},
         borders:thinB, margins:cm,
+        verticalAlign:VerticalAlign.CENTER,
         shading:{fill:notes?NOTES:WHITE,type:ShadingType.CLEAR},
         children:[notes
           ? p([t('Ghi chú: ',{bold:true,color:NAVY,size:17}),t(notes,{size:17,color:MUTED,italics:true})])
@@ -222,15 +229,9 @@ function checkboxGrid(wrongQs) {
 
 // ── MAIN DOCUMENT BUILDER ─────────────────────────────────
 function buildDocument(data) {
-  const { candidate, scores, speaking, w1, w2, listeningWrong, readingWrong, photo } = data;
+  const { candidate, scores, speaking, w1, w2, listeningWrong, readingWrong } = data;
   const overall = parseFloat(candidate.overall) || 0;
 
-  // Decode candidate photo (sent as base64 from Apps Script)
-  let photoBuffer = null, photoType = 'jpg';
-  if (photo && photo.b64) {
-    try { photoBuffer = Buffer.from(photo.b64, 'base64'); photoType = photo.type || 'jpg'; }
-    catch(e) { photoBuffer = null; }
-  }
   const cefr    = CEFR[overall] || { code:'B1', name:'Intermediate', idx:2 };
 
   // PAGE 1 — CERTIFICATE
@@ -282,46 +283,31 @@ function buildDocument(data) {
           children:[
             p([t('CANDIDATE DETAILS',{size:14,color:MUTED})]),
             ep(8),
-            // ── Photo + name nested table ─────────────────
-            (()=>{
-              const innerW = candW - 480;  // subtract left+right cell margins
-              const photoW = 1400;
-              const detailW = innerW - photoW;
-              const photoCell = new TableCell({
-                width:{size:photoW,type:WidthType.DXA},
-                borders:noB,
-                margins:{top:0,bottom:0,left:0,right:200},
-                shading:{fill:photoBuffer?WHITE:'E8ECF4',type:ShadingType.CLEAR},
-                verticalAlign:VerticalAlign.CENTER,
-                children: photoBuffer
-                  ? [p([new ImageRun({
-                      data:photoBuffer,
-                      transformation:{width:90,height:120},
-                      type:photoType,
-                      altText:{title:'Photo',description:'Candidate photo',name:'photo'}
-                    })])]
-                  : [
-                      p([t('3×4',  {size:13,color:MUTED})],{alignment:AlignmentType.CENTER}),
-                      p([t('photo',{size:13,color:MUTED})],{alignment:AlignmentType.CENTER})
-                    ]
-              });
-              const detailCell = new TableCell({
-                width:{size:detailW,type:WidthType.DXA},
-                borders:noB,
-                margins:{top:0,bottom:0,left:160,right:0},
-                children:[
-                  p([t(candidate.name||'—',{size:34,bold:true,color:NAVY})]),
-                  ep(12),
-                  p([t('Class: ',{size:17,color:MUTED}),t(candidate.classId||'—',{size:17,bold:true,color:TEXT})]),
-                  p([t('Test Date: ',{size:17,color:MUTED}),t(candidate.testDate||'—',{size:17,bold:true,color:TEXT})]),
-                ]
-              });
-              return new Table({
-                width:{size:innerW,type:WidthType.DXA},
-                columnWidths:[photoW,detailW],
-                rows:[new TableRow({children:[photoCell,detailCell]})]
-              });
-            })()
+            new Table({
+              width:{size:candW-480,type:WidthType.DXA},
+              columnWidths:[1400, candW-480-1400],
+              rows:[new TableRow({children:[
+                new TableCell({
+                  width:{size:1400,type:WidthType.DXA},
+                  borders:thinB,
+                  margins:{top:0,bottom:0,left:0,right:0},
+                  shading:{fill:'E8ECF4',type:ShadingType.CLEAR},
+                  verticalAlign:VerticalAlign.CENTER,
+                  children:[p([t('',{size:18})])]
+                }),
+                new TableCell({
+                  width:{size:candW-480-1400,type:WidthType.DXA},
+                  borders:noB,
+                  margins:{top:0,bottom:0,left:200,right:0},
+                  children:[
+                    p([t(candidate.name||'—',{size:34,bold:true,color:NAVY})]),
+                    ep(12),
+                    p([t('Class: ',{size:17,color:MUTED}),t(candidate.classId||'—',{size:17,bold:true,color:TEXT})]),
+                    p([t('Test Date: ',{size:17,color:MUTED}),t(candidate.testDate||'—',{size:17,bold:true,color:TEXT})]),
+                  ]
+                })
+              ]})]
+            })
           ]
         }),
         new TableCell({
